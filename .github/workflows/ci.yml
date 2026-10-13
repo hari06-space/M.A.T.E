@@ -20,15 +20,18 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
+          cache-dependency-path: package-lock.json
 
       - name: Install dependencies
-        run: npm ci
-
-      - name: Typecheck and Build Web
-        run: npm run build:web
+        run: |
+          npm --prefix services/api ci
+          npm --prefix apps/web ci
 
       - name: Typecheck and Build API
-        run: npm run build:api
+        run: npm --prefix services/api run build
 
-      - name: Run API Tests
-        run: npm run test:api
+      - name: Run API Integration Tests
+        run: npm --prefix services/api run test
+
+      - name: Typecheck and Build Web Client
+        run: npm --prefix apps/web run build
