@@ -1,0 +1,28 @@
+{
+  "name": "mate-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "M.A.T.E. - Meeting Adventure Travel Escape monorepo",
+  "workspaces": [
+    "apps/*",
+    "services/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:web": "npm --prefix apps/web run dev",
+    "dev:api": "npm --prefix services/api run dev",
+    "build:web": "npm --prefix apps/web run build",
+    "build:api": "npm --prefix services/api run build",
+    "test:api": "npm --prefix services/api run test",
+    "test:web": "npm --prefix apps/web run test"
+  },
+  "keywords": [
+    "travel",
+    "mate",
+    "social-travel",
+    "travel-dna",
+    "companion-matching"
+  ],
+  "author": "M.A.T.E. Team",
+  "license": "UNLICENSED"
+}

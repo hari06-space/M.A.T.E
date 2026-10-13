@@ -1,89 +1,95 @@
 # M.A.T.E. — Meeting Adventure Travel Escape
 
+![M.A.T.E. Logo](assets/branding/mate-logo.png)
+
 **Connect with people. Discover places. Share experiences.**
 
-M.A.T.E. (Meeting Adventure Travel Escape) is a social and travel-focused digital platform designed to bring people together through shared interests, travel experiences, and visual content. The project aims to create a seamless experience across web and mobile platforms, with a scalable architecture built to support future growth.
+M.A.T.E. (Meeting Adventure Travel Escape) is a next-generation social travel platform engineered to help travelers discover destinations, find highly compatible companions through **Travel DNA**, coordinate in dedicated **Trip Rooms**, and share authentic travel memories.
 
-## 🚀 Project Overview
+---
 
-M.A.T.E. aims to combine social interaction, travel discovery, and intelligent photo identification in one platform. Its planned capabilities include matching photos, identifying visually similar images, and detecting duplicate images to improve content discovery and management.
+## 🧭 Product Principles
 
-The platform is being designed with scalability, performance, maintainability, and security as core principles, with the long-term goal of supporting millions of users.
+1. **Relationship-First:** Focuses on companion compatibility and shared trip coordination, rather than mere transactional bookings.
+2. **Explainable Matching:** Companion matches highlight concrete compatibility factors (travel pace, budget tier, shared interests, dates) instead of opaque scores.
+3. **OWASP-Aligned Security:** Multi-layered defense against IDOR/BOLA, parameterized persistence, strict rate limiting, and EXIF sanitization.
+4. **Staged Computer Vision:** Photo duplicate and similarity workflows begin with SHA-256 exact checks, advance to perceptual hashing, and expand to semantic vision embeddings.
 
-## ✨ Key Features
+---
 
-- **Social Connectivity:** Support for connecting with people and sharing experiences.
-- **Travel Discovery:** Explore destinations and adventure opportunities.
-- **Photo Matching:** Match images and identify visually similar photos.
-- **Duplicate Image Detection:** Detect identical or duplicate images using image-processing techniques.
-- **Cross-Platform Access:** Web, Android, and iOS applications.
-- **Scalable Architecture:** Designed to support growing users, content, and traffic.
-- **Security-First Development:** Security practices aligned with OWASP guidance.
+## 🛠️ Mandatory Technology Stack
 
-## 🛠️ Technology Stack
+| Layer | Technology | Details |
+|---|---|---|
+| **Web Frontend** | React.js, TypeScript, Vite, Tailwind CSS | Responsive, accessible, mobile-first design |
+| **Mobile Apps** | Flutter & Dart | Genuine native iOS & Android applications |
+| **Backend API** | Node.js, Express.js, TypeScript | Modular monolith under `/api/v1` with OpenAPI spec |
+| **Database** | PostgreSQL | Relational transactional source of truth, PostGIS & pgvector |
+| **Media Intelligence** | Python, FastAPI, OpenCV, PIL | EXIF scrubbing, SHA-256 exact & perceptual hashing (pHash) |
+| **Containerization** | Docker & Docker Compose | Repeatable multi-service local & cloud environments |
+| **Security** | OWASP Top 10, API Top 10, ASVS / MASVS | Parameterized queries, BOLA protection, rate limiting |
 
-| Component | Technology |
-|---|---|
-| Web frontend | React.js, HTML5, CSS3 |
-| Mobile applications | Flutter |
-| Backend | Node.js, Express.js |
-| Database | PostgreSQL |
-| Image processing and AI/ML | Python |
-| Containerization | Docker |
-| Application security | OWASP-aligned security practices |
+---
 
-Additional infrastructure, image-search technologies, and deployment services will be selected and validated during implementation.
+## 🏗️ Repository Architecture
 
-## 🏗️ Architecture
+```
+MATE_MAIN/
+├── apps/
+│   ├── web/                     # React 18, TypeScript, Vite, Tailwind CSS web client
+│   └── mobile/                  # Flutter & Dart native Android / iOS application
+├── services/
+│   ├── api/                     # Node.js + Express.js + TypeScript modular monolith
+│   ├── image-processing/        # Python FastAPI + OpenCV + PIL image similarity engine
+│   └── worker/                  # Background worker queue for async media & jobs
+├── packages/
+│   └── shared-contracts/        # OpenAPI 3.0 specification & shared schemas
+├── infra/
+│   └── docker/                  # Docker Compose and container manifests
+├── docs/                        # Architecture decisions, RTM, threat models, guides
+└── assets/
+    └── branding/                # Official M.A.T.E. logo and brand assets
+```
 
-M.A.T.E. follows a planned modular architecture:
+---
 
-1. **Presentation Layer:** React.js web application and Flutter mobile applications.
-2. **API Layer:** Node.js and Express.js for application APIs and business logic.
-3. **Data Layer:** PostgreSQL for structured application data.
-4. **Image Intelligence Layer:** Python-based image processing and visual similarity analysis.
-5. **Deployment Layer:** Docker-based containerization to support consistent development and deployment environments.
-6. **Security Layer:** Authentication, authorization, input validation, secure API design, and OWASP-aligned security testing.
+## 🎨 Brand Design Tokens
 
-## 🔐 Security
+Derived directly from the official M.A.T.E. identity:
+- **Sunset Orange:** `#FF5E36` / `#FF7A45`
+- **Adventure Magenta:** `#E0287D` / `#D81B60`
+- **Twilight Purple:** `#6C2EB9` / `#4A154B`
+- **Midnight Navy:** `#0E1326` / `#161B33`
+- **Surface Neutrals:** `#F8FAFC` (Light) / `#0F172A` (Dark)
 
-Security is a core consideration throughout development. Planned measures include:
+---
 
-- OWASP Top 10 risk mitigation.
-- Secure authentication and authorization.
-- Input validation and protection against injection attacks.
-- API access controls and rate limiting.
-- Secure handling of user-uploaded images.
-- Secrets management and encrypted network communication.
-- Dependency scanning, security testing, and vulnerability remediation.
-- Privacy-conscious handling of user data and image content.
+## 🚀 Quickstart & Local Development
 
-## 📱 Supported Platforms
+### Prerequisites
+- Node.js >= 20.x
+- Docker & Docker Compose
+- Python 3.10+ (for image worker)
 
-- Web browsers
-- Android devices
-- iOS devices
+### 1. Local Environment Configuration
+```bash
+cp .env.example .env
+```
 
-## 🎯 Project Goals
+### 2. Run with Docker Compose
+```bash
+docker compose -f infra/docker/docker-compose.yml up --build
+```
+- **Web App:** http://localhost:5173
+- **API Monolith:** http://localhost:4000
+- **API Health:** http://localhost:4000/api/v1/health
+- **Image Processing Service:** http://localhost:8000
 
-- Build a unified social and travel discovery experience.
-- Develop reliable photo matching and visual similarity capabilities.
-- Design for scalability to support millions of users.
-- Maintain a modular, maintainable, and testable codebase.
-- Integrate security into every stage of the software development lifecycle.
+---
 
-## 🚧 Project Status
-
-**Status:** Planning and development preparation.
-
-The technologies and features described here represent the planned project direction. Individual features, infrastructure choices, and production-scale performance will be validated as implementation progresses.
-
-## 📄 Documentation
-
-The project documentation covers the proposal, business plan, product requirements, technical architecture, database design, API planning, security, budget, and implementation roadmap.
-
-## 📌 Project Name
-
-**M.A.T.E. — Meeting Adventure Travel Escape**
-
-*Building connections and discovering adventures through technology.*
+## 📖 Key Documentation
+- [Requirements Traceability Matrix](docs/requirements-traceability.md)
+- [Architecture Decision Records](docs/architecture-decisions.md)
+- [Implementation Roadmap](docs/implementation-roadmap.md)
+- [Security Threat Model](docs/security-threat-model.md)
+- [Security Checklist](docs/security-checklist.md)

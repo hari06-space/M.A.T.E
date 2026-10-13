@@ -1,0 +1,432 @@
+openapi: 3.0.3
+info:
+  title: M.A.T.E. API
+  description: Official REST API specification for M.A.T.E. (Meeting Adventure Travel Escape)
+  version: 1.0.0
+servers:
+  - url: http://localhost:4000/api/v1
+    description: Local development server
+paths:
+  /health:
+    get:
+      summary: API health and service dependency status
+      operationId: getHealth
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  timestamp:
+                    type: string
+                    format: date-time
+                  version:
+                    type: string
+                    example: 1.0.0
+
+  /auth/register:
+    post:
+      summary: Register a new traveler account
+      operationId: register
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, full_name]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 8
+                full_name:
+                  type: string
+      responses:
+        '201':
+          description: Registration successful
+        '400':
+          description: Invalid input
+        '409':
+          description: Email already registered
+
+  /auth/login:
+    post:
+      summary: Authenticate traveler and issue JWT tokens
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+                  refreshToken:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: Invalid credentials
+
+  /profile/me:
+    get:
+      summary: Retrieve current authenticated traveler profile
+      operationId: getMyProfile
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Profile retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+    patch:
+      summary: Update traveler profile
+      operationId: updateMyProfile
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileInput'
+      responses:
+        '200':
+          description: Profile updated
+
+  /travel-dna/me:
+    get:
+      summary: Get Travel DNA preferences
+      operationId: getMyTravelDna
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Travel DNA retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TravelDna'
+    put:
+      summary: Set or update Travel DNA
+      operationId: updateTravelDna
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TravelDna'
+      responses:
+        '200':
+          description: Travel DNA saved
+
+  /destinations:
+    get:
+      summary: Search and list canonical destinations
+      operationId: getDestinations
+      parameters:
+        - name: query
+          in: query
+          schema:
+            type: string
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Destination list
+
+  /travel-plans:
+    get:
+      summary: Discover published travel plans
+      operationId: getTravelPlans
+      parameters:
+        - name: destination_id
+          in: query
+          schema:
+            type: string
+        - name: budget_tier
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Travel plans list
+    post:
+      summary: Create a new travel plan
+      operationId: createTravelPlan
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTravelPlanInput'
+      responses:
+        '201':
+          description: Travel plan created
+
+  /travel-plans/{id}:
+    get:
+      summary: Get travel plan details
+      operationId: getTravelPlanById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Travel plan details
+
+  /travel-plans/{id}/room:
+    get:
+      summary: Access private collaborative Trip Room
+      operationId: getTripRoom
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Trip Room details
+        '403':
+          description: Forbidden - Not a confirmed member
+
+  /matches/search:
+    post:
+      summary: Search for compatible travel companions
+      operationId: searchMatches
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                destination_id:
+                  type: string
+                start_date:
+                  type: string
+                  format: date
+                end_date:
+                  type: string
+                  format: date
+                budget_tier:
+                  type: string
+      responses:
+        '200':
+          description: Ranked matches with explainable compatibility factors
+
+  /media/similarity/check:
+    post:
+      summary: Identify exact duplicate or visually similar images
+      operationId: checkImageSimilarity
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [media_id]
+              properties:
+                media_id:
+                  type: string
+                mode:
+                  type: string
+                  enum: [exact, perceptual, semantic]
+                  default: exact
+      responses:
+        '200':
+          description: Similarity results with confidence score
+
+  /safety/reports:
+    post:
+      summary: Submit user or content report
+      operationId: submitReport
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [target_type, target_id, reason]
+              properties:
+                target_type:
+                  type: string
+                  enum: [USER, POST, TRIP, MESSAGE]
+                target_id:
+                  type: string
+                reason:
+                  type: string
+                details:
+                  type: string
+      responses:
+        '201':
+          description: Report recorded for moderation
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        full_name:
+          type: string
+        role:
+          type: string
+          enum: [USER, MODERATOR, ADMIN]
+        is_verified:
+          type: boolean
+
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: string
+        user_id:
+          type: string
+        bio:
+          type: string
+        avatar_url:
+          type: string
+        home_city:
+          type: string
+        languages:
+          type: array
+          items:
+            type: string
+        travel_styles:
+          type: array
+          items:
+            type: string
+        verified_email:
+          type: boolean
+        verified_phone:
+          type: boolean
+        completed_trips_count:
+          type: integer
+
+    UpdateProfileInput:
+      type: object
+      properties:
+        bio:
+          type: string
+        home_city:
+          type: string
+        languages:
+          type: array
+          items:
+            type: string
+        travel_styles:
+          type: array
+          items:
+            type: string
+
+    TravelDna:
+      type: object
+      properties:
+        pace:
+          type: string
+          enum: [RELAXED, MODERATE, INTENSIVE, FAST_PACED]
+        budget_tier:
+          type: string
+          enum: [BUDGET, MID_RANGE, LUXURY, FLEXIBLE]
+        trip_style:
+          type: array
+          items:
+            type: string
+            enum: [BACKPACKING, ADVENTURE, CULTURAL, ROAD_TRIP, NATURE, FOODIE, WELLNESS, BEACH]
+        stay_preference:
+          type: string
+          enum: [HOSTEL, BOUTIQUE_HOTEL, RESORT, HOMESTAY, CAMPING]
+        social_preference:
+          type: string
+          enum: [EXTROVERTED_GROUP, SMALL_GROUP, ONE_ON_ONE, INTROVERT_FRIENDLY]
+
+    CreateTravelPlanInput:
+      type: object
+      required: [title, destination_id, start_date, end_date, capacity, budget_tier]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        destination_id:
+          type: string
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        capacity:
+          type: integer
+          minimum: 2
+          maximum: 20
+        budget_tier:
+          type: string
+          enum: [BUDGET, MID_RANGE, LUXURY, FLEXIBLE]
+        activities:
+          type: array
+          items:
+            type: string

@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: mate_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-mate_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mate_password}
+      POSTGRES_DB: ${POSTGRES_DB:-mate_db}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mate_user} -d ${POSTGRES_DB:-mate_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ../../services/api
+      dockerfile: Dockerfile
+    container_name: mate_api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: development
+      PORT: 4000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-mate_user}:${POSTGRES_PASSWORD:-mate_password}@postgres:5432/${POSTGRES_DB:-mate_db}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-dev_access_secret_key_change_in_prod_12345}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-dev_refresh_secret_key_change_in_prod_12345}
+      IMAGE_SERVICE_URL: http://image-service:8000
+    ports:
+      - "4000:4000"
+
+  image-service:
+    build:
+      context: ../../services/image-processing
+      dockerfile: Dockerfile
+    container_name: mate_image_service
+    restart: unless-stopped
+    environment:
+      PORT: 8000
+    ports:
+      - "8000:8000"
+
+  web:
+    build:
+      context: ../../apps/web
+      dockerfile: Dockerfile
+    container_name: mate_web
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      VITE_API_URL: http://localhost:4000/api/v1
+    ports:
+      - "5173:5173"
+
+volumes:
+  postgres_data:
